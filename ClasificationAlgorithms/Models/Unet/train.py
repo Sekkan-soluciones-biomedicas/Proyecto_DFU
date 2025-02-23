@@ -62,7 +62,7 @@ VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 
 ## Get best Optuna hyperparameters to train:
-with open('output_assets_model/Optuna/optuna_best_hyp_firstprove.json', 'r') as f: # Load best hyperparameters from JSON file
+with open('output_assets_model/Optuna/optuna_best_hyp.json', 'r') as f: # Load best hyperparameters from JSON file
     best_hyperparams = json.load(f)
 LEARNING_RATE = best_hyperparams['params']['learning_rate']
 BATCH_SIZE = best_hyperparams['params']['batch_size']
