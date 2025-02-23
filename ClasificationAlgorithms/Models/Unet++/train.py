@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import pandas as pd
 import zipfile
 import torch
@@ -12,6 +13,27 @@ import torch.optim as optim
 from main import UnetPlusPlus
 from metrics import check_metrics, dice_loss_multiclass, calculate_metrics
 from utils import save_predictions_as_imgs, load_checkpoint, get_loaders, plot_dice_loss, concat_dicts_to_dataframe
+
+# --------------- history --------------------------
+
+# Define las rutas
+carpeta_origen = 'output_assets_model'
+carpeta_destino = os.path.join(carpeta_origen, 'history_oam')
+
+# Crea la carpeta de destino si no existe
+os.makedirs(carpeta_destino, exist_ok=True)
+
+# Recorre todos los elementos en la carpeta origen
+for item in os.listdir(carpeta_origen):
+    # Obtén la ruta completa del elemento
+    ruta_completa_item = os.path.join(carpeta_origen, item)
+    
+    # Verifica si es un archivo y no una carpeta
+    if os.path.isfile(ruta_completa_item):
+        # Copia el archivo a la carpeta de destino
+        shutil.copy(ruta_completa_item, carpeta_destino)
+
+print("Archivos de oam copiados exitosamente al history.")
 
 
 # ------------------- Parámetros de entrenamiento --------------------
@@ -40,6 +62,13 @@ VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/dat
 
 if not os.path.exists('output_assets_model'): # Crear el directorio assets si no existe.
     os.makedirs('output_assets_model')
+
+## Get best Optuna hyperparameters to train:
+with open('output_assets_model/Optuna/optuna_best_hyp.json', 'r') as f: # Load best hyperparameters from JSON file
+    best_hyperparams = json.load(f)
+LEARNING_RATE = best_hyperparams['params']['learning_rate']
+BATCH_SIZE = best_hyperparams['params']['batch_size']
+p_dropout = best_hyperparams['params']['dropout_prob']
 
 #------------------- Funciones de entrenamiento -------------------
 
