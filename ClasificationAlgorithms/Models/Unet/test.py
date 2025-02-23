@@ -34,12 +34,12 @@ dict_test_metrics = calculate_double_metrics(test_image_dir, test_mask_dir, mode
 # ----- Guardamos las métricas en un archivo .csv --------------
 df_test_metrics = pd.DataFrame(dict_test_metrics, index=[0,1,2,3])
 df_test_metrics.index.name = 'Class'
-df_test_metrics.to_csv("output_assets_model/test_double_metrics.csv", index=True) # Sin índices.
+df_test_metrics.to_csv("output_assets_model/test_metrics_Unet.csv", index=True) # Sin índices.
 # # Guardar las métricas en un archivo JSON
 # with open("output_assets_model/test_metrics.json", "w") as outfile:
 #     json.dump(test_metrics, outfile)
 df_test_mean_metrics = pd.DataFrame(dict_test_metrics).mean()
-df_test_mean_metrics.to_csv("output_assets_model/test_double_mean_metrics.csv", index=True) # Sin índices.
+df_test_mean_metrics.to_csv("output_assets_model/test_mean_metrics_Unet.csv", index=True) # Sin índices.
 
 # ----- Imprimimos las métricas (opcional) --------------
 print("Métricas calculadas para el test set:")

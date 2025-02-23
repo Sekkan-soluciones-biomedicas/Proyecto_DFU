@@ -130,7 +130,7 @@ def main():
         "params": trial.params
     }
     os.makedirs("output_assets_model", exist_ok=True)
-    with open("output_assets_model/optuna_best_hyp.json", "w") as f:
+    with open("output_assets_model/Optuna/optuna_best_hyp.json", "w") as f:
         json.dump(best_params, f, indent=4)
 
 if __name__ == "__main__":
