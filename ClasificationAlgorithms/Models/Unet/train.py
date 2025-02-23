@@ -39,6 +39,12 @@ TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/d
 VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 
+## Get best Optuna hyperparameters to train:
+with open('output_assets_model/optuna_best_hyp_firstprove.json', 'r') as f: # Load best hyperparameters from JSON file
+    best_hyperparams = json.load(f)
+LEARNING_RATE = best_hyperparams['params']['learning_rate']
+BATCH_SIZE = best_hyperparams['params']['batch_size']
+p_dropout = best_hyperparams['params']['dropout_prob']
 
 #------------------- Funciones de entrenamiento -------------------
 
@@ -121,7 +127,7 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("C:/Users/am969/Documents/DFU_Proyect/SegmentationNetworks/Models/Unet/output_assets_model/best_model_checkpoint.pth",  weights_only=True), model)
+        load_checkpoint(torch.load("C:/Users/am969/Documents/DFU_Proyect/SegmentationNetworks/Models/Unet/output_assets_model/best_model_checkpoint_Unet.pth",  weights_only=True), model)
         print("Model loaded successfully!")
 
     scaler = torch.amp.GradScaler('cuda')
