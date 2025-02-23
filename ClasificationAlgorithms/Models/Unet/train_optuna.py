@@ -23,8 +23,10 @@ TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/d
 VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 
-epochs_per_trial = 12
-n_trials = 50
+# epochs_per_trial = 12
+epochs_per_trial = int(input("Enter epochs per trial :"))
+n_trials = int(input("Enter number of trials: "))
+# n_trials = 50
 
 #------------------- Funciones de entrenamiento -------------------
 
@@ -123,6 +125,8 @@ def main():
     # Guardar los mejores hiperparámetros en un archivo JSON
     best_params = {
         "mean Dice value": trial.value,
+        "Number of epochs per trial": epochs_per_trial,
+        "Number of trials": n_trials,
         "params": trial.params
     }
     os.makedirs("output_assets_model", exist_ok=True)
