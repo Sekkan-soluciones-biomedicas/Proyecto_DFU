@@ -134,7 +134,7 @@ def plot_dice_loss(L_dice_result, L_loss_result, show_plot=False):
 
     # Guardado de la gráfica:
     plt.savefig("output_assets_model/dice_loss_graph.png")
-    print(f"Gráfica de Loss y Dice guardada en: output_assets_model/dice_loss_graph_Unet++.png")
+    print(f"Gráfica de Loss y Dice guardada en: output_assets_model/dice_loss_graph_AttentionUnet.png")
     # Mostrar la gráfica (opcional):
     if show_plot:
         plt.grid(True)

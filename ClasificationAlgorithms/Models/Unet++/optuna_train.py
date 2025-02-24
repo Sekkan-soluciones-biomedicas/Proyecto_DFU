@@ -67,7 +67,7 @@ def objective(trial):
     dropout_prob = trial.suggest_uniform('dropout_prob', 0.0, 0.5)
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3) if optimizer_name == "AdamW" else None
 
-    model = UnetPlusPlus(in_channels=3, out_channels=4, impl_dropout=True, prob_dropout=dropout_prob).to(DEVICE)
+    model = UnetPlusPlus(in_channels=3, out_channels=4, dropout=dropout_prob).to(DEVICE)
     loss_fn = dice_loss_multiclass
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) if optimizer_name == 'Adam' else optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
