@@ -63,7 +63,7 @@ def objective(trial):
     # Hyperparameter optimization
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-6, 1e-2)
     optimizer_name = trial.suggest_categorical('optimizer', ['Adam', 'AdamW'])
-    batch_size = trial.suggest_int('batch_size', 2, 8)
+    batch_size = trial.suggest_int('batch_size', 2, 6)
     dropout_prob = trial.suggest_uniform('dropout_prob', 0.0, 0.5)
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3) if optimizer_name == "AdamW" else None
 
