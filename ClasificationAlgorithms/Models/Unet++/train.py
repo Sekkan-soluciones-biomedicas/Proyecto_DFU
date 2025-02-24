@@ -136,7 +136,7 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
     # loss_fn = dice_loss
     loss_fn = dice_loss_multiclass
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5) # Reduce LR if validation loss plateaus
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5) # Reduce LR if validation loss plateaus
 
     train_loader, val_loader = get_loaders(
         TRAIN_IMG_DIR,
@@ -170,11 +170,12 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
         # Train the model:
         epoch_loss = train_fn(train_loader, model, optimizer, loss_fn, scaler)
         L_loss.append(epoch_loss)
-        scheduler.step(epoch_loss) # Update scheduler based on training loss
+        # scheduler.step(epoch_loss) # Update scheduler based on training loss
 
         # Check accuracy on validation set:
         dict_metrics_per_class = check_metrics(val_loader, model, device=DEVICE)
         epoch_mean_dice = np.mean(dict_metrics_per_class["dice_coefficient"])  # Coeficiente dice promedio de todas las clases en la época actual
+        scheduler.step(epoch_mean_dice) # Update scheduler based on mean_dice
         L_dicts_metrics.append(dict_metrics_per_class)
         # print(f"mean dice: {epoch_mean_dice}")
         L_mean_dices.append(epoch_mean_dice)
