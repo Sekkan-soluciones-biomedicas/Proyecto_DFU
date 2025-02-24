@@ -1,4 +1,5 @@
 import json
+import shutil
 import pandas as pd
 import os
 import zipfile
@@ -11,8 +12,29 @@ import numpy as np
 import torch.optim as optim
 import optuna
 from main import UNET
-from metrics import check_metrics, dice_loss_multiclass, calculate_metrics
-from utils import save_predictions_as_imgs, load_checkpoint, get_loaders, plot_dice_loss, concat_dicts_to_dataframe
+from metrics import check_metrics, dice_loss_multiclass
+from utils import get_loaders
+
+# --------------- history --------------------------
+
+# Define las rutas
+carpeta_origen = 'output_assets_model/Optuna'
+carpeta_destino = 'output_assets_model/history_oam/Optuna'
+
+# Crea la carpeta de destino si no existe
+os.makedirs(carpeta_destino, exist_ok=True)
+
+# Recorre todos los elementos en la carpeta origen
+for item in os.listdir(carpeta_origen):
+    # Obtén la ruta completa del elemento
+    ruta_completa_item = os.path.join(carpeta_origen, item)
+    
+    # Verifica si es un archivo y no una carpeta
+    if os.path.isfile(ruta_completa_item):
+        # Copia el archivo a la carpeta de destino
+        shutil.copy(ruta_completa_item, carpeta_destino)
+
+print("Archivos de oam copiados exitosamente al history.")
 
 # ------------------- Parámetros de entrenamiento --------------------
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

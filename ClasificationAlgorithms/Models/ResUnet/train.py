@@ -52,6 +52,8 @@ SAVE_IMS = True
 SAVE_MODEL = True  # ! IMPORTANTE: debe esta en True para guardar el modelo y sus datos.
 PATIENCE = 20 # for early stopping. Set big to avoid it.
 p_dropout = 0.15 # Set 0 to no implement dropout
+OPTIMIZER_NAME= 'Adam'
+WEIGHT_DECAY= 1e-6 # For AdamW optimizer
 
 # TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_images"
 # TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_masks"
@@ -69,6 +71,8 @@ with open('output_assets_model/Optuna/optuna_best_hyp.json', 'r') as f: # Load b
 LEARNING_RATE = best_hyperparams['params']['learning_rate']
 BATCH_SIZE = best_hyperparams['params']['batch_size']
 p_dropout = best_hyperparams['params']['dropout_prob']
+OPTIMIZER_NAME = best_hyperparams['params']['optimizer']
+WEIGHT_DECAY = best_hyperparams['params']['weight_decay'] if OPTIMIZER_NAME == "AdamW" else None
 
 #------------------- Funciones de entrenamiento -------------------
 
@@ -135,7 +139,8 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
     # loss_fn = nn.BCEWithLogitsLoss()
     # loss_fn = dice_loss
     loss_fn = dice_loss_multiclass
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) if OPTIMIZER_NAME == 'Adam' else optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5) # Reduce LR if validation loss plateaus
 
     train_loader, val_loader = get_loaders(
