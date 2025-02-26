@@ -81,11 +81,15 @@ def analyze_dataset(image_path, mask_path, output_path="assets_analysis_new"):
 
 # Uso
 def main():
+    # For de original split:
     analyze_dataset("data_padded/images", "data_padded/masks", output_path="assets_analysis_new")
     # analyze_dataset("data_padded/test_images", "data_padded/test_masks", output_path="assets_analysis_new/tvt/test")
     # analyze_dataset("data_padded/val_images", "data_padded/val_masks", output_path="assets_analysis_new/tvt/val")
     # analyze_dataset("data_padded/train_images", "data_padded/train_masks", output_path="assets_analysis_new/tvt/train")
     # analyze_dataset("data_padded/trainval_images", "data_padded/trainval_masks", output_path="assets_analysis_new/tvt/trainval")
+    # For the stratified split:
+    # analyze_dataset("data_padded_strat/train/images", "data_padded_strat/train/masks", output_path="assets_analysis_strat/tt/train")
+    # analyze_dataset("data_padded_strat/test/images", "data_padded_strat/test/masks", output_path="assets_analysis_strat/tt/test")
 
 if __name__ == "__main__":
     main()
