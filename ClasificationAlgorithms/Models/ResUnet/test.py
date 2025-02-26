@@ -9,7 +9,7 @@ from metrics import calculate_double_metrics
 
 # ------------- Parámetros ----------------
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-batch_size = 4
+batch_size = 5
 img_size_for_test = 240
 test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/test_images"
 test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/test_masks"
@@ -28,17 +28,17 @@ model2.eval()
 # ----- Calculamos las métricas --------------
 
 print("Calculating test metrics...")
-dict_test_metrics = calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, num_classes=4, device=DEVICE, image_height=img_size_for_test, image_width=img_size_for_test)
+dict_test_metrics = calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, num_classes=4, device=DEVICE, image_height=img_size_for_test, image_width=img_size_for_test, batch_size=batch_size)
 
 # ----- Guardamos las métricas en un archivo .csv --------------
 df_test_metrics = pd.DataFrame(dict_test_metrics, index=[0,1,2,3])
 df_test_metrics.index.name = 'Class'
-df_test_metrics.to_csv("output_assets_model/test_double_metrics_ResUnet.csv", index=True) # Sin índices.
+df_test_metrics.to_csv("output_assets_model/test_metrics_ResUnet.csv", index=True) # Sin índices.
 # # Guardar las métricas en un archivo JSON
 # with open("output_assets_model/test_metrics.json", "w") as outfile:
 #     json.dump(test_metrics, outfile)
 df_test_mean_metrics = pd.DataFrame(dict_test_metrics).mean()
-df_test_mean_metrics.to_csv("output_assets_model/test_double_mean_metrics_ResUnet.csv", index=True) # Sin índices.
+df_test_mean_metrics.to_csv("output_assets_model/test_mean_metrics_ResUnet.csv", index=True) # Sin índices.
 
 # ----- Imprimimos las métricas (opcional) --------------
 print("Métricas calculadas para el test set:")
@@ -51,7 +51,7 @@ print(df_test_mean_metrics)
 VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 print('========\n', 'Métricas de validación (después del entrenamiento, con el mejor estado del modelo)\n', '=====================')
-dict_val_metrics = calculate_double_metrics(VAL_IMG_DIR, VAL_MASK_DIR, model1, model2, num_classes=4, device=DEVICE, image_height=img_size_for_test, image_width=img_size_for_test)
+dict_val_metrics = calculate_double_metrics(VAL_IMG_DIR, VAL_MASK_DIR, model1, model2, num_classes=4, device=DEVICE, image_height=img_size_for_test, image_width=img_size_for_test, batch_size=batch_size)
 print(pd.DataFrame(dict_val_metrics))
 print("---- Métricas promedio ----")
 print(pd.DataFrame(dict_val_metrics).mean())

@@ -1,4 +1,5 @@
 import os
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 import numpy as np
@@ -33,4 +34,12 @@ class DFUTissueDataset(Dataset):
             augmentations = self.transform(image=image, mask=mask)
             image = augmentations["image"]
             mask = augmentations["mask"]
+
+        # 🔹 Asegurar que ambas sean tensores
+        if not isinstance(image, torch.Tensor):
+            image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)  # (H, W, C) → (C, H, W)
+
+        if not isinstance(mask, torch.Tensor):
+            mask = torch.tensor(mask, dtype=torch.long)  # PyTorch usa `long` para segmentación
+
         return image, mask

@@ -47,10 +47,10 @@ NUM_WORKERS = 0
 IMAGE_HEIGHT = 240
 IMAGE_WIDTH = 240
 PIN_MEMORY = True
-LOAD_MODEL = True    # True if you want to load a pre-trained model
+LOAD_MODEL = False    # True if you want to load a pre-trained model
 SAVE_IMS = True
 SAVE_MODEL = True  # ! IMPORTANTE: debe esta en True para guardar el modelo y sus datos.
-PATIENCE = 20 # for early stopping. Set big to avoid it.
+PATIENCE = 24 # for early stopping. Set big to avoid it.
 p_dropout = 0.15 # Set 0 to no implement dropout
 OPTIMIZER_NAME= 'Adam'
 WEIGHT_DECAY= 1e-6 # For AdamW optimizer
@@ -115,6 +115,10 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
             A.Rotate(limit=35, p=0.5),
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.1),
+            A.Perspective(p=0.2),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.25),
+            A.GaussNoise(p=0.2),
+            
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
@@ -123,6 +127,59 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
             ToTensorV2(),
         ]
     )
+
+    # train_transform = A.Compose(
+    #     [
+    #         A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+    #         A.OneOf(
+    #             [
+    #                 A.HorizontalFlip(p=0.5),
+    #                 A.VerticalFlip(p=0.5),
+    #             ],
+    #             p=0.8,
+    #         ),
+    #         A.OneOf(
+    #             [
+    #                 A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=0, shift_limit=0, p=0.1, border_mode=0),
+    #                 A.ShiftScaleRotate(scale_limit=0, rotate_limit=30, shift_limit=0, p=0.1, border_mode=0),
+    #                 A.ShiftScaleRotate(scale_limit=0, rotate_limit=0, shift_limit=0.1, p=0.6, border_mode=0),
+    #                 A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=30, shift_limit=0.1, p=0.2, border_mode=0),
+    #             ],
+    #             p=0.9,
+    #         ),
+    #         A.Rotate(limit=35, p=0.5),
+    #         A.OneOf(
+    #             [
+    #                 A.Perspective(p=0.2),
+    #                 A.GaussNoise(p=0.2),
+    #                 A.Sharpen(p=0.2),
+    #                 A.Blur(blur_limit=3, p=0.2),
+    #                 A.MotionBlur(blur_limit=3, p=0.2),
+    #             ],
+    #             p=0.5,
+    #         ),
+    #         A.OneOf(
+    #             [
+    #                 A.CLAHE(p=0.25),
+    #                 A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.25),
+    #                 A.RandomGamma(p=0.25),
+    #                 A.HueSaturationValue(p=0.25),
+    #             ],
+    #             p=0.3,
+    #         ),
+    #         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
+    #         # A.Permute(2, 0, 1),  # Descomentar si sigue el problema
+    #         ToTensorV2(),
+    #     ],
+    #     p=0.9,
+    # )
+
+    # # Agregamos ToTensorV2() fuera del bloque con p=0.9
+    # train_transform = A.Compose([
+    #     augmentations,  # 🔹 Se aplican augmentations con p=0.9
+    #     ToTensorV2(),   # 🔹 Siempre convierte a tensor
+    # ])
+
     val_transforms = A.Compose(
         [
             A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
