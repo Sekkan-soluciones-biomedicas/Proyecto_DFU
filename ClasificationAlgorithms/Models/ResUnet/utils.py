@@ -26,12 +26,19 @@ def get_loaders(
     train_transform,
     val_transform,
     num_workers=4,
-    pin_memory = True,
+    pin_memory=True,
+    train_imgs=None,   # Lista opcional de nombres de archivos para el conjunto de entrenamiento
+    train_masks=None,  # Lista opcional de nombres de archivos para las máscaras de entrenamiento
+    val_imgs=None,     # Lista opcional de nombres de archivos para el conjunto de validación
+    val_masks=None     # Lista opcional de nombres de archivos para las máscaras de validación
 ):
+    # Se asume que DFUTissueDataset puede recibir 'file_names' y 'mask_names' para filtrar los datos
     train_ds = DFUTissueDataset(
         image_dir=train_dir,
         mask_dir=train_maskdir,
         transform=train_transform,
+        file_names=train_imgs,
+        mask_names=train_masks
     )
 
     train_loader = DataLoader(
@@ -46,6 +53,8 @@ def get_loaders(
         image_dir=val_dir,
         mask_dir=val_maskdir,
         transform=val_transform,
+        file_names=val_imgs,
+        mask_names=val_masks
     )
 
     val_loader = DataLoader(
@@ -57,7 +66,6 @@ def get_loaders(
     )
 
     return train_loader, val_loader
-
 
 def save_predictions_as_imgs(loader, model, folder="output_assets_model/saved_images/", device="cuda"):
     if not os.path.exists(folder):
