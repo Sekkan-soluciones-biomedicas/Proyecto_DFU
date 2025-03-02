@@ -55,10 +55,10 @@ p_dropout = 0.15 # Set 0 to no implement dropout
 OPTIMIZER_NAME= 'Adam'
 WEIGHT_DECAY= 1e-6 # For AdamW optimizer
 
-# TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_images"
-# TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_masks"
-TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/Resized/unlabel_data_padded"
-TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/pseudo_masks"
+TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_images"
+TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_masks"
+# TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/Resized/unlabel_data_padded"
+# TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/pseudo_masks"
 VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 
@@ -113,11 +113,45 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
         [
             A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
             A.Rotate(limit=35, p=0.5),
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.1),
-            A.Perspective(p=0.2),
-            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.25),
-            A.GaussNoise(p=0.2),
+
+            A.OneOf(
+                [
+                    A.HorizontalFlip(p=0.5),
+                    A.VerticalFlip(p=0.5),
+                ],
+                p=0.8,
+            ),
+
+            A.OneOf(
+                [
+                    A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=0, shift_limit=0, p=0.1, border_mode=0),
+                    A.ShiftScaleRotate(scale_limit=0, rotate_limit=30, shift_limit=0, p=0.1, border_mode=0),
+                    A.ShiftScaleRotate(scale_limit=0, rotate_limit=0, shift_limit=0.1, p=0.6, border_mode=0),
+                    A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=30, shift_limit=0.1, p=0.2, border_mode=0),
+                ],
+                p=0.9,
+            ),
+
+            A.OneOf(
+                [
+                    A.Perspective(p=0.2),
+                    A.GaussNoise(p=0.2),
+                    A.Sharpen(p=0.2),
+                    A.Blur(blur_limit=3, p=0.2),
+                    A.MotionBlur(blur_limit=3, p=0.2),
+                ],
+                p=0.5,
+            ),
+
+            A.OneOf(
+                [
+                    A.CLAHE(p=0.25),
+                    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.25),
+                    A.RandomGamma(p=0.25),
+                    A.HueSaturationValue(p=0.25),
+                ],
+                p=0.3,
+            ),
             
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
@@ -127,58 +161,6 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
             ToTensorV2(),
         ]
     )
-
-    # train_transform = A.Compose(
-    #     [
-    #         A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-    #         A.OneOf(
-    #             [
-    #                 A.HorizontalFlip(p=0.5),
-    #                 A.VerticalFlip(p=0.5),
-    #             ],
-    #             p=0.8,
-    #         ),
-    #         A.OneOf(
-    #             [
-    #                 A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=0, shift_limit=0, p=0.1, border_mode=0),
-    #                 A.ShiftScaleRotate(scale_limit=0, rotate_limit=30, shift_limit=0, p=0.1, border_mode=0),
-    #                 A.ShiftScaleRotate(scale_limit=0, rotate_limit=0, shift_limit=0.1, p=0.6, border_mode=0),
-    #                 A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=30, shift_limit=0.1, p=0.2, border_mode=0),
-    #             ],
-    #             p=0.9,
-    #         ),
-    #         A.Rotate(limit=35, p=0.5),
-    #         A.OneOf(
-    #             [
-    #                 A.Perspective(p=0.2),
-    #                 A.GaussNoise(p=0.2),
-    #                 A.Sharpen(p=0.2),
-    #                 A.Blur(blur_limit=3, p=0.2),
-    #                 A.MotionBlur(blur_limit=3, p=0.2),
-    #             ],
-    #             p=0.5,
-    #         ),
-    #         A.OneOf(
-    #             [
-    #                 A.CLAHE(p=0.25),
-    #                 A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.25),
-    #                 A.RandomGamma(p=0.25),
-    #                 A.HueSaturationValue(p=0.25),
-    #             ],
-    #             p=0.3,
-    #         ),
-    #         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-    #         # A.Permute(2, 0, 1),  # Descomentar si sigue el problema
-    #         ToTensorV2(),
-    #     ],
-    #     p=0.9,
-    # )
-
-    # # Agregamos ToTensorV2() fuera del bloque con p=0.9
-    # train_transform = A.Compose([
-    #     augmentations,  # 🔹 Se aplican augmentations con p=0.9
-    #     ToTensorV2(),   # 🔹 Siempre convierte a tensor
-    # ])
 
     val_transforms = A.Compose(
         [
