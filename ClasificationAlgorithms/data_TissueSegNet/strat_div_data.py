@@ -19,8 +19,8 @@ def stratified_split(image_dir, mask_dir, output_dir, test_size=0.15, random_sta
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(os.path.join(output_dir, "train/images"), exist_ok=True)
     os.makedirs(os.path.join(output_dir, "train/masks"), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, "test/images"), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, "test/masks"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "val/images"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "val/masks"), exist_ok=True)
 
     images = sorted([f for f in os.listdir(image_dir) if f.endswith('.png')])
     masks = sorted([f for f in os.listdir(mask_dir) if f.endswith('.png')])
@@ -62,11 +62,12 @@ def stratified_split(image_dir, mask_dir, output_dir, test_size=0.15, random_sta
         shutil.copy(os.path.join(mask_dir, mask), os.path.join(output_dir, "train/masks", mask))
 
     for img, mask in zip(test_imgs, test_masks):
-        shutil.copy(os.path.join(image_dir, img), os.path.join(output_dir, "test/images", img))
-        shutil.copy(os.path.join(mask_dir, mask), os.path.join(output_dir, "test/masks", mask))
+        shutil.copy(os.path.join(image_dir, img), os.path.join(output_dir, "val/images", img))
+        shutil.copy(os.path.join(mask_dir, mask), os.path.join(output_dir, "val/masks", mask))
 
     print("✅ División estratificada completada. Datos guardados en:", output_dir)
 
 # Uso:
 if __name__ == "__main__":
-    stratified_split("data_padded/images", "data_padded/masks", "data_padded_strat")
+    # stratified_split("data_padded/images", "data_padded/masks", "data_padded_strat")   # Para dividir el conjunto original en un conjunto de train 85% y test 15%
+    stratified_split("data_padded_strat/train/images", "data_padded_strat/train/masks", "data_padded_strat_for_training", test_size=0.1765)  # Para dividir el conjunto del 85% en train al 70% (del cjto. total de imagenes) y val al 15% (del cjto total de imgs).
