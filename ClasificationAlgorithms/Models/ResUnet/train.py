@@ -50,23 +50,28 @@ PIN_MEMORY = True
 LOAD_MODEL = False    # True if you want to load a pre-trained model
 SAVE_IMS = True
 SAVE_MODEL = True  # ! IMPORTANTE: debe esta en True para guardar el modelo y sus datos.
-PATIENCE = 24 # for early stopping. Set big to avoid it.
+PATIENCE = 50 # for early stopping. Set big to avoid it.
 p_dropout = 0.15 # Set 0 to no implement dropout
 OPTIMIZER_NAME= 'Adam'
 WEIGHT_DECAY= 1e-6 # For AdamW optimizer
 
-TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_images"
-TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_masks"
-# TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/Resized/unlabel_data_padded"
-# TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/pseudo_masks"
-VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
-VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
+# TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_images"
+# TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/train_masks"
+# # TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/Resized/unlabel_data_padded"
+# # TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_semisup_padded/pseudo_masks"
+# VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
+# VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
+
+TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/train/images"
+TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/train/masks"
+VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/val/images"
+VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/val/masks"
 
 if not os.path.exists('output_assets_model'): # Crear el directorio assets si no existe.
     os.makedirs('output_assets_model')
 
 ## Get best Optuna hyperparameters to train:
-with open('output_assets_model/Optuna/optuna_best_hyp.json', 'r') as f: # Load best hyperparameters from JSON file
+with open('output_assets_model/Optuna/optuna_best_hyp_w_cv.json', 'r') as f: # Load best hyperparameters from JSON file
     best_hyperparams = json.load(f)
 LEARNING_RATE = best_hyperparams['params']['learning_rate']
 BATCH_SIZE = best_hyperparams['params']['batch_size']
