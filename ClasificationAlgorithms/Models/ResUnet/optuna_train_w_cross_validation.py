@@ -1,4 +1,5 @@
 import json
+import csv
 import shutil
 import pandas as pd
 import os
@@ -26,6 +27,20 @@ TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/d
 epochs_per_trial = int(input("Enter epochs per trial :"))
 n_trials = int(input("Enter number of trials: "))
 n_splits = 5  # Número de folds en validación cruzada
+
+# Crear el archivo CSV y escribir los encabezados
+csv_file = "output_assets_model/Optuna/trial_hyperparameters.csv"
+os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+with open(csv_file, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["trial_number", "learning_rate", "optimizer", "batch_size", "dropout_prob", "weight_decay", "mean_dice"])
+
+# Crear el archivo CSV y escribir los encabezados
+csv_file_b = "output_assets_model/Optuna/trial_bad_hyperparameters.csv"
+os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+with open(csv_file_b, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["trial_number", "learning_rate", "optimizer", "batch_size", "dropout_prob", "weight_decay", "mean_dice_one_fold"])
 
 #------------------- Función de entrenamiento -------------------
 
@@ -156,8 +171,11 @@ def objective(trial):
 
             if any(dc == 0.0000 for dc in dict_metrics_per_class["dice_coefficient"]): # Parar el trial si se detecta frecuentemente un Dice de 0 para alguna clase.
                 cnt_detect_zero_dice += 1
-                if cnt_detect_zero_dice == 10:
-                    print("Saltando trial por varios 0's consecutivos...")
+                if cnt_detect_zero_dice == 12:
+                    print("Saltando trial debido a varios 0's consecutivos...")
+                    with open(csv_file_b, mode='a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow([trial.number, learning_rate, optimizer_name, batch_size, dropout_prob, weight_decay, epoch_mean_dice])
                     break
 
             if epoch_mean_dice > best_mean_dice:
@@ -165,7 +183,14 @@ def objective(trial):
 
         all_mean_dice.append(best_mean_dice)
 
-    return np.mean(all_mean_dice)  # Promedio de los valores de los k folds
+    mean_dice = np.mean(all_mean_dice)
+
+    # Guardar los hiperparámetros y el mejor modelo hasta el momento en el archivo CSV
+    with open(csv_file, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([trial.number, learning_rate, optimizer_name, batch_size, dropout_prob, weight_decay, mean_dice])
+
+    return mean_dice  # Promedio de los valores de los k folds
 
 def main():
     study = optuna.create_study(direction='maximize')
