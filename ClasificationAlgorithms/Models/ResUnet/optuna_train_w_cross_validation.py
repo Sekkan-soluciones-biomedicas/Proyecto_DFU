@@ -177,7 +177,9 @@ def objective(trial):
                         writer = csv.writer(file)
                         writer.writerow([trial.number, learning_rate, optimizer_name, batch_size, dropout_prob, weight_decay, epoch_mean_dice])
                     break
-
+            else:
+                cnt_detect_zero_dice = 0  # Se reinicia el contador para que solo se cuenten los consecutivos.
+                
             if epoch_mean_dice > best_mean_dice:
                 best_mean_dice = epoch_mean_dice
 
