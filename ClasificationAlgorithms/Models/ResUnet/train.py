@@ -71,7 +71,7 @@ if not os.path.exists('output_assets_model'): # Crear el directorio assets si no
     os.makedirs('output_assets_model')
 
 ## Get best Optuna hyperparameters to train:
-with open('output_assets_model/Optuna/optuna_best_hyp_w_cv.json', 'r') as f: # Load best hyperparameters from JSON file
+with open('output_assets_model/Optuna/optuna_best_hyp_w_strat_data.json', 'r') as f: # Load best hyperparameters from JSON file
     best_hyperparams = json.load(f)
 LEARNING_RATE = best_hyperparams['params']['learning_rate']
 BATCH_SIZE = best_hyperparams['params']['batch_size']
