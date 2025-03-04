@@ -8,8 +8,12 @@ from main import ResUnet #, ResUnet, etc.
 from metrics import calculate_double_metrics
 
 # ------------- Parámetros ----------------
+## Get best Optuna hyperparameters to train:
+with open('output_assets_model/Optuna/optuna_best_hyp_w_strat_data.json', 'r') as f: # Load best hyperparameters from JSON file
+    best_hyperparams = json.load(f)
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-batch_size = 5
+batch_size = best_hyperparams['params']['batch_size']
 img_size_for_test = 240
 test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/test/images"
 test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/test/masks"
