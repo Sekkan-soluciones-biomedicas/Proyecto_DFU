@@ -1,3 +1,8 @@
+"""Esta función crea la carpeta p_class en donde agrega tres carpetas
+train_callus, train_gran y train_fibrin, en donde se guardan las imágenes
+que tengan presencia de su clase correspondiente dentro del train set.
+Se copian tanto imágenes como máscaras."""
+
 import os
 import shutil
 import numpy as np
