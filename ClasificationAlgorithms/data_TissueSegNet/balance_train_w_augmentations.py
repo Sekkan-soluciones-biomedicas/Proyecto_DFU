@@ -1,3 +1,11 @@
+"""Este script crea una carpeta train_b con imágenes (y sus respectivas máscaras) balanceadas entre
+las clases de fibrina, granulación y calloso. Se seleccionan imágenes con prioridad para evitar
+la repetición de las clases más favorecidas al aumentar la cantidad de datos de las menos favorecidas,
+esto a partir de seleccionar las imágenes que unicamente contengan la clase a aumentar (de las menos
+favorecidas), seguido de las que unicamente contengan la menos favorecida junto con la segunda menos
+favorecida y por último seleccionando aleatoriamente las imágenes faltantes para el balance de las que
+tengan presencia de las tres clases.
+Se aplican augmentations para aumentar la cantidad de datos en las clases minoritarias."""
 import os
 import shutil
 import numpy as np
