@@ -117,6 +117,9 @@ def objective(trial):
     model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob, n_filters=n_filters).to(DEVICE)
     w_dice = trial.suggest_float('w_dice', 0.0, 1.0)
     w_focal = 1.0 - w_dice
+    patience_in_sutudy = 20 # para el early stopping en cada estudio.
+    zeros_patience = 40  # Número de veces que se detecta un Dice de 0 para alguna clase antes de saltar el trial.
+
     # model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob).to(DEVICE)
     # loss_fn = dice_loss_multiclass
     # .. WeightedSumOfLosses implementation ...
@@ -195,15 +198,19 @@ def objective(trial):
     scaler = torch.amp.GradScaler('cuda')
     best_mean_dice = 0.0
     cnt_detect_zero_dice = 0
+    cnt_patience = 0
 
     for epoch in range(epochs_per_trial):  # Fixed number of epochs for optimization
         epoch_loss = train_fn(train_loader, model, optimizer, loss_fn, scaler)
         dict_metrics_per_class = check_metrics(val_loader, model, device=DEVICE)
         epoch_mean_dice = np.mean(dict_metrics_per_class["dice_coefficient"])
 
+        if epoch > 10 and epoch_mean_dice <= best_mean_dice:
+            raise optuna.TrialPruned()
+
         if any(dc == 0.0000 for dc in dict_metrics_per_class["dice_coefficient"]): # Parar el trial si se detecta frecuentemente un Dice de 0 para alguna clase.
             cnt_detect_zero_dice += 1
-            if cnt_detect_zero_dice == 12:
+            if cnt_detect_zero_dice == zeros_patience:
                 print("Saltando trial debido a varios 0's consecutivos...")
                 with open(csv_file_b, mode='a', newline='') as file:
                     writer = csv.writer(file)
@@ -214,7 +221,13 @@ def objective(trial):
 
         if epoch_mean_dice > best_mean_dice:
             best_mean_dice = epoch_mean_dice
+        else:
+            cnt_patience += 1
 
+        if cnt_patience > patience_in_sutudy: # Early stopping en el estudio
+            # print(f"===Early stopping at epoch: {epoch:04d}===")
+            raise optuna.TrialPruned()
+        
         # Guardar los hiperparámetros y el mejor modelo hasta el momento en el archivo CSV
         with open(csv_file, mode='a', newline='') as file:
             writer = csv.writer(file)
@@ -223,9 +236,14 @@ def objective(trial):
     return best_mean_dice
 
 def main():
-    study = optuna.create_study(direction='maximize')
+    study = optuna.create_study(
+        study_name="ResUnet_study", 
+        storage="sqlite:///ResUnet_study.db", 
+        direction='maximize', 
+        load_if_exists=True,
+        pruner=optuna.pruners.MedianPruner()  ## Este es para quitar los trails que no son prometedores.
+        )
     study.optimize(objective, n_trials=n_trials)
-
     print("Best trial:")
     trial = study.best_trial
     print("  Value: {}".format(trial.value))
