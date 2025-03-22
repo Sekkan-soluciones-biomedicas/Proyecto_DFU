@@ -57,24 +57,31 @@ class decoder_block(nn.Module):
         return x
 
 class ResUnet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=1, dropout=0.5):
+    def __init__(self, in_channels=3, out_channels=4, dropout=0.5, n_filters=64):
         super().__init__()
-        self.c11 = nn.Conv2d(in_channels, 64, kernel_size=3, padding=1)
-        self.br1 = batchnorm_relu(64)
-        self.c12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.c13 = nn.Conv2d(in_channels, 64, kernel_size=1, padding=0)
+        # Usamos n_filters como base y escalamos las capas
+        f = n_filters  # Número inicial de filtros
 
-        self.r2 = residual_block(64, 128, stride=2, dropout=0.0)                 ##
-        self.r3 = residual_block(128, 256, stride=2, dropout=0.0)                 ## Dropout desactivado para el encoder.
-        self.r4 = residual_block(256, 512, stride=2, dropout=0.0)                ##
+        # Encoder
+        self.c11 = nn.Conv2d(in_channels, f, kernel_size=3, padding=1)
+        self.br1 = batchnorm_relu(f)
+        self.c12 = nn.Conv2d(f, f, kernel_size=3, padding=1)
+        self.c13 = nn.Conv2d(in_channels, f, kernel_size=1, padding=0)
 
-        self.d1 = decoder_block(512, 256, dropout=dropout)
-        self.d2 = decoder_block(256, 128, dropout=dropout)
-        self.d3 = decoder_block(128, 64, dropout=dropout)
+        self.r2 = residual_block(f, f * 2, stride=2, dropout=0.0)      # f -> 2f
+        self.r3 = residual_block(f * 2, f * 4, stride=2, dropout=0.0)  # 2f -> 4f
+        self.r4 = residual_block(f * 4, f * 8, stride=2, dropout=0.0)  # 4f -> 8f
 
-        self.final_conv = nn.Conv2d(64, out_channels, kernel_size=1)
+        # Decoder
+        self.d1 = decoder_block(f * 8, f * 4, dropout=dropout)  # 8f -> 4f
+        self.d2 = decoder_block(f * 4, f * 2, dropout=dropout)  # 4f -> 2f
+        self.d3 = decoder_block(f * 2, f, dropout=dropout)      # 2f -> f
+
+        # Capa final
+        self.final_conv = nn.Conv2d(f, out_channels, kernel_size=1)
 
     def forward(self, inputs):
+        # Encoder
         x = self.c11(inputs)
         x = self.br1(x)
         x = self.c12(x)
@@ -83,17 +90,21 @@ class ResUnet(nn.Module):
 
         skip2 = self.r2(skip1)
         skip3 = self.r3(skip2)
-
         b = self.r4(skip3)
 
+        # Decoder
         d1 = self.d1(b, skip3)
         d2 = self.d2(d1, skip2)
         d3 = self.d3(d2, skip1)
 
+        # Salida
         output = self.final_conv(d3)
         return output
+    
 
-def test_model():
+# Función para probar el modelo
+
+def test_model(n_filters=64, dropout=0.5):
     batch_size = 2  # Número de imágenes en el lote
     in_channels = 3  # Canales de entrada (RGB)
     height, width = 224, 224  # Tamaño de las imágenes de entrada
@@ -102,24 +113,30 @@ def test_model():
     # Crear un tensor aleatorio para simular las imágenes de entrada
     x = torch.randn(batch_size, in_channels, height, width)
 
-    # Instanciar el modelo
-    model = ResUnet(in_channels=in_channels, out_channels=num_classes)
+    # Instanciar el modelo con los hiperparámetros
+    model = ResUnet(
+        in_channels=in_channels,
+        out_channels=num_classes,
+        dropout=dropout,
+        n_filters=n_filters
+    )
 
     # Pasar el tensor de entrada a través del modelo
     outputs = model(x)
 
     # Imprimir las dimensiones de la salida
-    # print(f"Dimensiones de salida: {outputs.shape}")
-    # print(f"Esperado: ({batch_size}, {num_classes}, {height}, {width})")
+    print(f"Dimensiones de salida: {outputs.shape}")
+    print(f"Esperado: ({batch_size}, {num_classes}, {height}, {width})")
 
     # Verificar que las dimensiones sean las correctas
     assert outputs.shape == (batch_size, num_classes, height, width), \
         "Error: Las dimensiones de la salida no son correctas."
 
-    print("El modelo funciona correctamente.")
+    print(f"El modelo funciona correctamente con n_filters={n_filters} y dropout={dropout}.")
 
-# Llamar a la función de prueba:
-print("Probando el modelo...")
-start=time.time()
-test_model()
-print("(Time of 2 224x224 imgs: ",round(time.time()-start, 2), "s)\n\n")
+# Llamar a la función de prueba
+if __name__ == "__main__":
+    print("Probando el modelo...")
+    start = time.time()
+    test_model(n_filters=32, dropout=0.3)  # Ejemplo con valores específicos
+    print("(Tiempo de 2 imágenes 224x224: ", round(time.time() - start, 2), "s)\n\n")

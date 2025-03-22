@@ -187,14 +187,24 @@ class Loss(nn.Module):
         else:
             raise ValueError("Loss should be inherited from `Loss` class")
 
-class SumOfLosses(Loss):
-    def __init__(self, l1, l2):
+# class SumOfLosses(Loss):
+#     def __init__(self, l1, l2):
+#         super().__init__()
+#         self.l1 = l1
+#         self.l2 = l2
+
+#     def forward(self, pred, target):
+#         return self.l1(pred, target) + self.l2(pred, target)
+class WeightedSumOfLosses(Loss):
+    def __init__(self, l1, l2, w1=1.0, w2=1.0):
         super().__init__()
         self.l1 = l1
         self.l2 = l2
+        self.w1 = w1
+        self.w2 = w2
 
     def forward(self, pred, target):
-        return self.l1(pred, target) + self.l2(pred, target)
+        return self.w1 * self.l1(pred, target) + self.w2 * self.l2(pred, target)
 
 # Definimos DiceLoss ajustado
 class DiceLoss(Loss):
@@ -236,28 +246,67 @@ class FocalLoss(Loss):
         self.reduction = reduction
 
     def forward(self, pred, target):
-        # Asegurarse de que target sea de tipo long
+        # pred: (batch_size, num_classes, H, W)
+        # target: (batch_size, 1, H, W) o (batch_size, H, W)
+        
+        # Asegurarse de que target sea de tipo long y eliminar dimensión singleton si existe
         if target.dtype != torch.long:
             target = target.long()
+        if target.dim() == 4 and target.size(1) == 1:  # Si target tiene forma [batch_size, 1, H, W]
+            target = target.squeeze(1)  # Convertir a [batch_size, H, W]
 
-        # Calcular la pérdida focal para multiclass
-        num_classes = pred.size(1)
-        loss = 0
-        for cls in range(num_classes):
-            cls_y_true = (target == cls).float().squeeze(1)  # Convertir a máscara binaria por clase
-            # print(cls_y_true.shape)
-            cls_y_pred = pred[:, cls, ...]       # Logits de la clase actual
-            # print(cls_y_pred.shape)
-            logpt = F.binary_cross_entropy_with_logits(cls_y_pred, cls_y_true, reduction="none")
-            pt = torch.exp(-logpt)
-            focal_term = (1.0 - pt).pow(self.gamma)
-            loss_cls = focal_term * logpt
-            if self.alpha is not None:
-                loss_cls *= self.alpha * cls_y_true + (1 - self.alpha) * (1 - cls_y_true)
-            loss += loss_cls.mean() if self.reduction == "mean" else loss_cls.sum()
-        return loss / num_classes if self.reduction == "mean" else loss
+        # Calcular la pérdida de entropía cruzada sin reducción
+        ce_loss = F.cross_entropy(pred, target, reduction="none")  # [batch_size, H, W]
+        
+        # Calcular el término focal
+        pt = torch.exp(-ce_loss)  # Probabilidades exponenciales
+        focal_loss = (1 - pt) ** self.gamma * ce_loss  # Aplicar el factor focal
+
+        # Aplicar alpha si está definido
+        if self.alpha is not None:
+            # Asegurarse de que alpha sea un tensor con pesos por clase
+            alpha_t = self.alpha[target]  # alpha[target] selecciona el peso correspondiente a cada clase en target
+            focal_loss = alpha_t * focal_loss
+
+        # Aplicar la reducción
+        if self.reduction == "mean":
+            return focal_loss.mean()
+        elif self.reduction == "sum":
+            return focal_loss.sum()
+        else:
+            return focal_loss
+
+# Definimos FocalLoss ajustado para multiclass (-VERSION ANTERIOR, LA DEL ARTÍCULO DFUTissueSegNet)
+# class FocalLoss(Loss):
+#     def __init__(self, gamma=2.0, alpha=None, reduction="mean"):
+#         super().__init__()
+#         self.gamma = gamma
+#         self.alpha = alpha
+#         self.reduction = reduction
+
+#     def forward(self, pred, target):
+#         # Asegurarse de que target sea de tipo long
+#         if target.dtype != torch.long:
+#             target = target.long()
+
+#         # Calcular la pérdida focal para multiclass
+#         num_classes = pred.size(1)
+#         loss = 0
+#         for cls in range(num_classes):
+#             cls_y_true = (target == cls).float().squeeze(1)  # Convertir a máscara binaria por clase
+#             # print(cls_y_true.shape)
+#             cls_y_pred = pred[:, cls, ...]       # Logits de la clase actual
+#             # print(cls_y_pred.shape)
+#             logpt = F.binary_cross_entropy_with_logits(cls_y_pred, cls_y_true, reduction="none")
+#             pt = torch.exp(-logpt)
+#             focal_term = (1.0 - pt).pow(self.gamma)
+#             loss_cls = focal_term * logpt
+#             if self.alpha is not None:
+#                 loss_cls *= self.alpha * cls_y_true + (1 - self.alpha) * (1 - cls_y_true)
+#             loss += loss_cls.mean() if self.reduction == "mean" else loss_cls.sum()
+#         return loss / num_classes if self.reduction == "mean" else loss
 
 # Definimos la suma de pérdidas
 dice_loss = DiceLoss(eps=1e-6)
-focal_loss = FocalLoss(gamma=2.0, alpha=0.25, reduction="mean")
-sum_of_losses = SumOfLosses(dice_loss, focal_loss)
+focal_loss = FocalLoss(gamma=2.0, alpha=None, reduction="mean")
+sum_of_losses = WeightedSumOfLosses(dice_loss, focal_loss, w1=0.5, w2=0.5)

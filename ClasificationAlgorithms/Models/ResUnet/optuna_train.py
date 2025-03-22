@@ -13,10 +13,10 @@ import numpy as np
 import torch.optim as optim
 import optuna
 from main import ResUnet
-from metrics import check_metrics, dice_loss_multiclass, sum_of_losses
+from metrics import check_metrics, dice_loss_multiclass, sum_of_losses, DiceLoss, FocalLoss, WeightedSumOfLosses
 from utils import get_loaders
 
-# --------------- history --------------------------
+# --------------- history ----------------------------------------
 
 # Define las rutas
 carpeta_origen = 'output_assets_model/Optuna'
@@ -113,10 +113,18 @@ def objective(trial):
     batch_size = trial.suggest_int('batch_size', 2, 8)
     dropout_prob = trial.suggest_uniform('dropout_prob', 0.0, 0.4)
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3) if optimizer_name == "AdamW" else None
-
-    model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob).to(DEVICE)
+    n_filters = trial.suggest_int('n_filters', 16, 64, step=16)  # 16, 32, 48, 64
+    model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob, n_filters=n_filters).to(DEVICE)
+    w_dice = trial.suggest_float('w_dice', 0.0, 1.0)
+    w_focal = 1.0 - w_dice
+    # model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob).to(DEVICE)
     # loss_fn = dice_loss_multiclass
-    loss_fn = sum_of_losses
+    # .. WeightedSumOfLosses implementation ...
+    dice_loss = DiceLoss(eps=1e-6)
+    focal_loss = FocalLoss(gamma=2.0, alpha=None, reduction="mean")
+    loss_fn = WeightedSumOfLosses(dice_loss, focal_loss, w1=w_dice, w2=w_focal)
+    # ...
+    # loss_fn = sum_of_losses
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) if optimizer_name == 'Adam' else optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     train_transform = A.Compose([
@@ -233,7 +241,7 @@ def main():
         "params": trial.params
     }
     os.makedirs("output_assets_model/Optuna", exist_ok=True)
-    with open("output_assets_model/Optuna/optuna_best_hyp_w_strat_data.json", "w") as f:
+    with open("output_assets_model/Optuna/optuna_best_hyp_w_balanced_clas.json", "w") as f:
         json.dump(best_params, f, indent=4)
 
 if __name__ == "__main__":
