@@ -151,7 +151,7 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/Models/Unet++/output_assets_model/best_model_checkpoint_Unet++.pth",  weights_only=True), model)
+        load_checkpoint(torch.load("C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/Models/Unet++/output_assets_model/best_model_checkpoint_UnetPP_smp.pth",  weights_only=True), model)
         print("Model loaded successfully!")
 
     scaler = torch.amp.GradScaler('cuda')
@@ -201,10 +201,10 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
                 # torch.save(checkpoint, f"model_checkpoint_epoch_{epoch+1}.pth")
 
                 # Guardar el modelo en .pth y en .zip:
-                torch.save(checkpoint, "output_assets_model/best_model_checkpoint_Unet++.pth")
+                torch.save(checkpoint, "output_assets_model/best_model_checkpoint_UnetPP_smp.pth")
                 # torch.save(checkpoint, "my_checkpoint.pth.tar")
-                with zipfile.ZipFile("output_assets_model/best_model_checkpoint_Unet++.zip", 'w') as zipf:
-                    zipf.write("output_assets_model/best_model_checkpoint_Unet++.pth")
+                with zipfile.ZipFile("output_assets_model/best_model_checkpoint_UnetPP_smp.zip", 'w') as zipf:
+                    zipf.write("output_assets_model/best_model_checkpoint_UnetPP_smp.pth")
             else:
                 cnt_patience += 1 # Aumentar el contador si el modelo mejora.
         # Early stopping
@@ -223,7 +223,7 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
         print("Saving metrics...")
         # Save metrics for each epoch:
         df_metrics = concat_dicts_to_dataframe(L_dicts_metrics)
-        df_metrics.to_csv('output_assets_model/metrics_per_epoch_Unet++.csv', index=False)
+        df_metrics.to_csv('output_assets_model/metrics_per_epoch_UnetPP_smp.csv', index=False)
         
         # Plot Dice (for class 0 only, it can be any class but just one at time) and Loss:
         # L_dice_0 = df_metrics[df_metrics.Class == 0]['dice_coefficient'].tolist()  # Este es para graficar el dice de una sola clase, en este caso está la clase 0 (el background)
@@ -237,13 +237,13 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
         best_metrics_c3 = [max(df_metrics[df_metrics.Class == 3]['dice_coefficient']), max(df_metrics[df_metrics.Class == 3]['IoU']), max(df_metrics[df_metrics.Class == 3]['accuracy']), max(df_metrics[df_metrics.Class == 3]['precision']), max(df_metrics[df_metrics.Class == 3]['recall']), max(df_metrics[df_metrics.Class == 3]['f1_score'])]
         best_metrics_df = pd.DataFrame([best_metrics_c0, best_metrics_c1, best_metrics_c2, best_metrics_c3], columns=cols, index=[0, 1, 2, 3])
         best_metrics_df.index.name = 'Class'
-        best_metrics_df.to_csv('output_assets_model/best_metrics_val(during_training)_Unet++.csv', index=True)
+        best_metrics_df.to_csv('output_assets_model/best_metrics_val(during_training)_UnetPP_smp.csv', index=True)
 
         # Save parameters:
         parameters = {'Num Epochs': NUM_EPOCHS, 'Learning Rate': LEARNING_RATE, 'Batch Size': BATCH_SIZE, 'Image Height': IMAGE_HEIGHT, 'Image Width': IMAGE_WIDTH, 'Device': str(DEVICE), 'Num Workers': NUM_WORKERS, 'Pin Memory': PIN_MEMORY, 'Load Model': LOAD_MODEL, 'Save Images': SAVE_IMS, 'Train Image Dir': TRAIN_IMG_DIR, 'Val Image Dir': VAL_IMG_DIR, 'Elapsed Time[m]': round((end_time - start_time)/60, 4), 'Best_model_epoch': best_model_epoch, 'Patience (early_stop)': PATIENCE, 'Dropout_p' : p_dropout}  
-        pd.DataFrame(parameters, index=[0]).to_csv('output_assets_model/parameters_Unet++.csv', index=False)    # Guardar los parámetros en un archivo CSV
+        pd.DataFrame(parameters, index=[0]).to_csv('output_assets_model/parameters_UnetPP_smp.csv', index=False)    # Guardar los parámetros en un archivo CSV
             # Guardar los parámetros como un archivo .json:
-        with open('output_assets_model/parameters_Unet++.json', 'w') as json_file:
+        with open('output_assets_model/parameters_UnetPP_smp.json', 'w') as json_file:
             json.dump(parameters, json_file, indent=4)
 
         print('Best model epoch:', best_model_epoch)
