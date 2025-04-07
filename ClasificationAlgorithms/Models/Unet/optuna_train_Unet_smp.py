@@ -61,7 +61,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     num_batches = 0
 
     for batch_idx, (data, targets) in enumerate(loop):
-        data = data.to(device=DEVICE)
+        data = data.to(device=DEVICE, dtype=torch.float32)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
 
         with torch.amp.autocast('cuda'):
@@ -95,7 +95,7 @@ def objective(trial):
         in_channels=3,
         classes=4,
         activation=None,
-        # decoder_attention_type='pscse',
+        # decoder_attention_type='pscse', # Al descomentarlo aparece el error de que esto no está implementado se la librería smp.
         decoder_use_batchnorm=True,
     ).to(DEVICE)
     
@@ -108,7 +108,7 @@ def objective(trial):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) if optimizer_name == 'Adam' else optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
     train_transform = A.Compose([
-        A.Resize(height=240, width=240),
+        A.Resize(height=256, width=256),
         A.Rotate(limit=35, p=0.5),
         A.OneOf(
             [
@@ -150,7 +150,7 @@ def objective(trial):
     ])
 
     val_transforms = A.Compose([
-        A.Resize(height=240, width=240),
+        A.Resize(height=256, width=256),
         A.Lambda(image=preprocessing_fn),
         ToTensorV2(),
     ])
