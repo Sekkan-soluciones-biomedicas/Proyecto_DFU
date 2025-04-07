@@ -9,23 +9,28 @@ from metrics import calculate_double_metrics
 
 # ------------- Parámetros ----------------
 ## Get best Optuna hyperparameters to train:
-with open('output_assets_model/Optuna/optuna_best_hyp_w_strat_data.json', 'r') as f: # Load best hyperparameters from JSON file
+with open('output_assets_model/Optuna/optuna_best_hyp_w_balanced_clas.json', 'r') as f: # Load best hyperparameters from JSON file
     best_hyperparams = json.load(f)
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 batch_size = best_hyperparams['params']['batch_size']
+n_filters = best_hyperparams['params']['n_filters']
+w_dice = best_hyperparams['params']['w_dice']
+w_focal = 1.0 - w_dice
 img_size_for_test = 240
-test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/test/images"
-test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/test/masks"
+test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/test/images"
+test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/test/masks"
 
 # ----- Cargamos el modelo entrenado con las mejores métricas ----------
 checkpoint1 = torch.load("output_assets_model/best_model_checkpoint_ResUnet.pth", weights_only=True)  ## Nota: el argumento weights_only=True es para evitar el warning que indica que de esta forma se carga con mayor seguridad el modelo. Sin embargo no se están cargando otros datos como el optimizador. En resumen, esto es solo para quitar el warning pues en principio no hay datos maliciosos en la forma en que se guarda el modelo localmente.
-model1 = ResUnet(in_channels=3, out_channels=4).to(DEVICE)    ## ------------ Aquí al cambiar de modelo -------------.
+# model1 = ResUnet(in_channels=3, out_channels=4).to(DEVICE)    ## ------------ Aquí al cambiar de modelo -------------.
+model1 = ResUnet(in_channels=3, out_channels=4, n_filters=n_filters, dropout=0.0).to(DEVICE)
 model1.load_state_dict(checkpoint1["state_dict"])
 model1.eval()
 
 checkpoint2 = torch.load("output_assets_model/best_model_checkpoint_ResUnet.pth", weights_only=True)  ## Nota: el argumento weights_only=True es para evitar el warning que indica que de esta forma se carga con mayor seguridad el modelo. Sin embargo no se están cargando otros datos como el optimizador. En resumen, esto es solo para quitar el warning pues en principio no hay datos maliciosos en la forma en que se guarda el modelo localmente.
-model2 = ResUnet(in_channels=3, out_channels=4).to(DEVICE)    ## ------------ Aquí al cambiar de modelo -------------.
+# model2 = ResUnet(in_channels=3, out_channels=4).to(DEVICE)    ## ------------ Aquí al cambiar de modelo -------------.
+model2 = ResUnet(in_channels=3, out_channels=4, n_filters=n_filters, dropout=0.0).to(DEVICE)
 model2.load_state_dict(checkpoint2["state_dict"])
 model2.eval()
 
