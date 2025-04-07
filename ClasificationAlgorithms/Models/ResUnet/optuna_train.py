@@ -117,8 +117,8 @@ def objective(trial):
     model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob, n_filters=n_filters).to(DEVICE)
     w_dice = trial.suggest_float('w_dice', 0.0, 1.0)
     w_focal = 1.0 - w_dice
-    patience_in_sutudy = 20 # para el early stopping en cada estudio.
-    zeros_patience = 40  # Número de veces que se detecta un Dice de 0 para alguna clase antes de saltar el trial.
+    patience_in_sutudy = 24 # para el early stopping en cada estudio.
+    zeros_patience = 20  # Número de veces que se detecta un Dice de 0 para alguna clase antes de saltar el trial.
 
     # model = ResUnet(in_channels=3, out_channels=4, dropout=dropout_prob).to(DEVICE)
     # loss_fn = dice_loss_multiclass
@@ -205,9 +205,6 @@ def objective(trial):
         dict_metrics_per_class = check_metrics(val_loader, model, device=DEVICE)
         epoch_mean_dice = np.mean(dict_metrics_per_class["dice_coefficient"])
 
-        if epoch > 10 and epoch_mean_dice <= best_mean_dice:
-            raise optuna.TrialPruned()
-
         if any(dc == 0.0000 for dc in dict_metrics_per_class["dice_coefficient"]): # Parar el trial si se detecta frecuentemente un Dice de 0 para alguna clase.
             cnt_detect_zero_dice += 1
             if cnt_detect_zero_dice == zeros_patience:
@@ -221,6 +218,7 @@ def objective(trial):
 
         if epoch_mean_dice > best_mean_dice:
             best_mean_dice = epoch_mean_dice
+            cnt_patience = 0  # Resetear el contador de paciencia si el modelo sí mejora.
         else:
             cnt_patience += 1
 
