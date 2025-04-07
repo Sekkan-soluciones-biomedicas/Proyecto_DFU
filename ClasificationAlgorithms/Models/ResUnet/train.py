@@ -11,7 +11,7 @@ import time
 import numpy as np
 import torch.optim as optim
 from main import ResUnet
-from metrics import check_metrics, dice_loss_multiclass, calculate_metrics
+from metrics import check_metrics, dice_loss_multiclass, calculate_metrics, DiceLoss, FocalLoss, WeightedSumOfLosses
 from utils import save_predictions_as_imgs, load_checkpoint, get_loaders, plot_dice_loss, concat_dicts_to_dataframe
 
 # --------------- history --------------------------
@@ -62,22 +62,25 @@ WEIGHT_DECAY= 1e-6 # For AdamW optimizer
 # VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_images"
 # VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded/val_masks"
 
-TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/train/images"
-TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/train/masks"
-VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/val/images"
-VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_strat_for_training/val/masks"
+TRAIN_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/train_b/images"
+TRAIN_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/train_b/masks"
+VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/val/images"
+VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/val/masks"
 
 if not os.path.exists('output_assets_model'): # Crear el directorio assets si no existe.
     os.makedirs('output_assets_model')
 
 ## Get best Optuna hyperparameters to train:
-with open('output_assets_model/Optuna/optuna_best_hyp_w_strat_data.json', 'r') as f: # Load best hyperparameters from JSON file
+with open('output_assets_model/Optuna/optuna_best_hyp_w_balanced_clas.json', 'r') as f: # Load best hyperparameters from JSON file
     best_hyperparams = json.load(f)
 LEARNING_RATE = best_hyperparams['params']['learning_rate']
 BATCH_SIZE = best_hyperparams['params']['batch_size']
 p_dropout = best_hyperparams['params']['dropout_prob']
 OPTIMIZER_NAME = best_hyperparams['params']['optimizer']
 WEIGHT_DECAY = best_hyperparams['params']['weight_decay'] if OPTIMIZER_NAME == "AdamW" else None
+n_filters = best_hyperparams['params']['n_filters']
+w_dice = best_hyperparams['params']['w_dice']
+w_focal = 1.0 - w_dice
 
 #------------------- Funciones de entrenamiento -------------------
 
@@ -179,10 +182,14 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
         ],
     )
 
-    model = ResUnet(in_channels=3, out_channels=4, dropout=p_dropout).to(DEVICE)
+    # model = ResUnet(in_channels=3, out_channels=4, dropout=p_dropout).to(DEVICE)
+    model = ResUnet(in_channels=3, out_channels=4, dropout=p_dropout, n_filters=n_filters).to(DEVICE)
     # loss_fn = nn.BCEWithLogitsLoss()
     # loss_fn = dice_loss
-    loss_fn = dice_loss_multiclass
+    # loss_fn = dice_loss_multiclass
+    dice_loss = DiceLoss(eps=1e-6)
+    focal_loss = FocalLoss(gamma=2.0, alpha=None, reduction="mean")
+    loss_fn = WeightedSumOfLosses(dice_loss, focal_loss, w1=w_dice, w2=w_focal)
     # optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) if OPTIMIZER_NAME == 'Adam' else optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5) # Reduce LR if validation loss plateaus
