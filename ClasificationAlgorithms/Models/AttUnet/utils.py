@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import segmentation_models_pytorch as smp
 
 def save_checkpoint(state, filename="my_checkpoint.pth.tar"):
     print("=> Saving checkpoint")
@@ -73,7 +74,7 @@ def save_predictions_as_imgs(loader, model, folder="output_assets_model/saved_im
     ]
 
     for idx, (x, y) in enumerate(loader):
-        x = x.to(device=device)
+        x = x.to(device=device, dtype=torch.float32)
         with torch.no_grad():
             preds = model(x)
             preds = torch.softmax(preds, dim=1)
@@ -141,15 +142,13 @@ def plot_dice_loss(L_dice_result, L_loss_result, show_plot=False):
         plt.show()
 
 
-def get_test_loader(test_image_dir, test_mask_dir, batch_size=4, image_height=240, image_width=240, num_workers=0, pin_memory=True):
+def get_test_loader(test_image_dir, test_mask_dir, batch_size=4, image_height=256, image_width=256, num_workers=0, pin_memory=True, encoder_name = 'resnet34'):
+    
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(encoder_name, 'imagenet')
     val_transforms = A.Compose(
         [
             A.Resize(height=image_height, width=image_width),
-            A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
+            A.Lambda(image=preprocessing_fn),  # Preprocesamiento específico del codificador
             ToTensorV2(),
         ]
     )
@@ -170,15 +169,12 @@ def get_test_loader(test_image_dir, test_mask_dir, batch_size=4, image_height=24
 
     return test_loader
 
-def get_preds_loader(image_dir, batch_size=4, image_height=240, image_width=240, num_workers=0, pin_memory=True):
+def get_preds_loader(image_dir, batch_size=4, image_height=256, image_width=256, num_workers=0, pin_memory=True, encoder_name = 'resnet34'):
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(encoder_name, 'imagenet')
     val_transforms = A.Compose(
         [
             A.Resize(height=image_height, width=image_width),
-            A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
+            A.Lambda(image=preprocessing_fn),  # Preprocesamiento específico del codificador
             ToTensorV2(),
         ]
     )
