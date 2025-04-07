@@ -69,8 +69,8 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
 
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(device=device, dtype=torch.float32)
+            y = y.to(device=device, dtype=torch.float32)
             preds1 = model1(x)
             preds2 = model2(x)
             preds_mean = (preds1 + preds2) / 2
