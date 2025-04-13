@@ -19,8 +19,8 @@ def check_metrics(loader, model, num_classes = 4, prin=True, device="cuda"):
 
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(device=device, dtype=torch.float32)  # Asegurarse que sea float32
+            y = y.to(device=device, dtype=torch.float32) 
             preds = torch.softmax(model(x), dim=1)
             preds = torch.argmax(preds, dim=1)
 
@@ -65,13 +65,13 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
     
     model1.eval()
     model2.eval()
-    w_1 = 0.2
+    w_1 = 0.5
     w_2 = 1 - w_1
 
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(device=device, dtype=torch.float32)
+            y = y.to(device=device, dtype=torch.float32)
             preds1 = model1(x)
             preds2 = model2(x)
             preds_mean = w_1*preds1 + w_2*preds2
@@ -108,12 +108,12 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
     model2.train()
     return dict_metrics
 
-def calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, num_classes=4, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"), image_height=240, image_width=240, num_workers=0, batch_size=4, pin_memory=True):
+def calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, num_classes=4, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"), image_height=256, image_width=256, num_workers=0, batch_size=4, pin_memory=True, encoder_name="resnet34"):
     """Hace lo mismo que check metrics, pero en este se usa el test_loader para el cálculo de las métricas del test."""
     model1.eval()
     model2.eval()
 
-    loader = get_test_loader(test_image_dir, test_mask_dir, batch_size= batch_size,  image_height=image_height, image_width=image_width, num_workers=num_workers, pin_memory=pin_memory)   # Cargar los datos.
+    loader = get_test_loader(test_image_dir, test_mask_dir, batch_size= batch_size,  image_height=image_height, image_width=image_width, num_workers=num_workers, pin_memory=pin_memory, encoder_name=encoder_name)   # Cargar los datos.
 
     dict_metrics = check_double_metrics(loader, model1, model2, num_classes=num_classes, prin=True, device=device)  # Calcular las métricas.
     model1.train() # regresarlo a su estado original si se quiere seguir entrenando el modelo.
