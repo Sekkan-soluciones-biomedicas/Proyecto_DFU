@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from utils import get_test_loader
+from medpy.metric.binary import hd, hd95
 
 def check_metrics(loader, model, num_classes = 4, prin=True, device="cuda"):
     """Calcula las métricas de evaluación de un modelo de segmentación multiclase (opcional) en un conjunto de datos de validación."""
@@ -60,6 +61,8 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
         "precision": torch.zeros(num_classes, device=device),
         "recall": torch.zeros(num_classes, device=device),
         "f1_score": torch.zeros(num_classes, device=device),
+        "hausdorff_distance": torch.zeros(num_classes, device=device),
+        "hausdorff_95_distance": torch.zeros(num_classes, device=device),
     }
     class_counts = torch.zeros(num_classes, device=device)
     
@@ -92,6 +95,23 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
                 metrics["precision"][cls] += precision
                 metrics["recall"][cls] += recall
                 metrics["f1_score"][cls] += 2 * (precision * recall) / (precision + recall + 1e-8)
+
+                # Calcular Hausdorff y Hausdorff 95
+                pred_mask = (preds == cls).float().cpu().numpy()  # [batch_size, height, width]
+                true_mask = (y == cls).float().cpu().numpy()  # [batch_size, height, width]
+                batch_size = pred_mask.shape[0]
+
+                for i in range(batch_size):
+                    pred_single = pred_mask[i].astype(np.bool_)
+                    true_single = true_mask[i].astype(np.bool_)
+
+                    if np.any(pred_single) and np.any(true_single):
+                        metrics["hausdorff_distance"][cls] += hd(pred_single, true_single)
+                        metrics["hausdorff_95_distance"][cls] += hd95(pred_single, true_single)
+                    else:
+                        metrics["hausdorff_distance"][cls] += 0
+                        metrics["hausdorff_95_distance"][cls] += 0
+                    # class_counts[cls] += 1
                 class_counts[cls] += 1
 
     for key in metrics:
