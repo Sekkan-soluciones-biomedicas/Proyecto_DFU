@@ -65,7 +65,7 @@ def check_double_metrics(loader, model1, model2, num_classes=4, prin=True, devic
     
     model1.eval()
     model2.eval()
-    w_1 = 0.5
+    w_1 = 0.671  # ds_ts = 0.737198
     w_2 = 1 - w_1
 
     with torch.no_grad():
