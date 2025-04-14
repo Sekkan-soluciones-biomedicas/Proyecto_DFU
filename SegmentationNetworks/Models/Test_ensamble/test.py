@@ -31,7 +31,7 @@ model2.eval()
 
 print("Calculating test metrics...")
 # dice_coefficient, IoU, accuracy, precision, recall, f1_score = calculate_metrics(test_image_dir, test_mask_dir, model1, device=DEVICE, image_height=240, image_width=240)
-dice_coefficient, IoU, accuracy, precision, recall, f1_score = calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, device=DEVICE, image_height=240, image_width=240)
+dice_coefficient, IoU, accuracy, precision, recall, f1_score, hausdorff_dist, hausdorff_95_dist = calculate_double_metrics(test_image_dir, test_mask_dir, model1, model2, device=DEVICE, image_height=240, image_width=240)
 
 # ----- Guardamos las métricas en un archivo .csv --------------
 test_metrics = {
@@ -40,7 +40,9 @@ test_metrics = {
     "Accuracy": accuracy,
     "Precision": precision,
     "Recall": recall,
-    "F1 Score": f1_score
+    "F1 Score": f1_score,
+    "Hausdorff Distance": hausdorff_dist,
+    "Hausdorff 95 Distance": hausdorff_95_dist
 }
 pd.DataFrame(test_metrics, index=[0]).to_csv("output_assets_model/test_metrics.csv", index=False)
 # with open("output_assets_model/test_metrics.json", "w") as outfile: # Guardar las métricas en un archivo JSON
@@ -56,10 +58,12 @@ print(pd.DataFrame(test_metrics, index=[0]))
 VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/SegmentationNetworks/data_DFU_images/data_MICCAI/val_images"
 VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/SegmentationNetworks/data_DFU_images/data_MICCAI/val_masks"
 print('========\n', 'Comparación de métricas de validación (después del entrenamiento, con el mejor estado del modelo)\n', '=====================')
-dice_coefficient, IoU, accuracy, precision, recall, f1_score = calculate_double_metrics(VAL_IMG_DIR, VAL_MASK_DIR, model1, model2, device=DEVICE, batch_size=4)
+dice_coefficient, IoU, accuracy, precision, recall, f1_score, hausdorff_dist, hausdorff_95_dist = calculate_double_metrics(VAL_IMG_DIR, VAL_MASK_DIR, model1, model2, device=DEVICE, batch_size=4)
 print(f"Dice Coefficient: {dice_coefficient:.4f}")
 print(f"IoU: {IoU:.4f}")
 print(f"Accuracy: {accuracy:.4f}")
 print(f"Precision: {precision:.4f}")
 print(f"Recall: {recall:.4f}")
 print(f"F1 Score: {f1_score:.4f}")
+print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
+print(f"Hausdorff 95 Distance: {hausdorff_95_dist:.4f}")
