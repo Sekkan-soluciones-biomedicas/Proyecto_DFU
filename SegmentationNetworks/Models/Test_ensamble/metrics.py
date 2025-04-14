@@ -90,7 +90,8 @@ def check_double_metrics(loader, model1, model2, prin=True, device="cuda"):
             false_negative += ((preds == 0) & (y == 1)).sum()
 
     # Calculate metrics:
-    dice_coefficient = dice_score / len(loader) if len(loader) > 0 else 0
+    # dice_coefficient = dice_score / len(loader) if len(loader) > 0 else 0
+    dice_coefficient = ( 2 * true_positive) / (2 * true_positive + false_positive + false_negative + 1e-8) if (2 * true_positive + false_positive + false_negative) > 0 else 0
     IoU = true_positive / (true_positive + false_positive + false_negative) if (true_positive + false_positive + false_negative) > 0 else 0
     accuracy = num_correct / num_pixels if num_pixels > 0 else 0 # Calculate accuracy
     precision = true_positive / (true_positive + false_positive) if (true_positive + false_positive) > 0 else 0
