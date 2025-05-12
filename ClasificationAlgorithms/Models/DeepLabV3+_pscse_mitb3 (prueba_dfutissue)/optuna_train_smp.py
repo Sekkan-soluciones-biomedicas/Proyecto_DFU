@@ -223,13 +223,16 @@ def main():
         load_if_exists=True,
         pruner=optuna.pruners.MedianPruner()
     )
+    s_time = time.time()
     study.optimize(objective, n_trials=n_trials)
+    e_time = time.time()
     print("Best trial:")
     trial = study.best_trial
     print("  Value: {}".format(trial.value))
     print("  Params: ")
     for key, value in trial.params.items():
         print("    {}: {}".format(key, value))
+    print("Tiempo total de búsqueda y entrenamiento: ", round((e_time - s_time) / 60, 2), "minutos, (", round((e_time - s_time) / 3600, 2), "horas).")
 
     best_params = {
         "mean Dice value": trial.value,

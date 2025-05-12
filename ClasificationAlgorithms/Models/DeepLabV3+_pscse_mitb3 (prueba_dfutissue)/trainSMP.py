@@ -178,7 +178,7 @@ def main(NUM_EPOCHS=NUM_EPOCHS):
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) if OPTIMIZER_NAME == 'Adam' else optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 
     # Scheduler para reducir la tasa de aprendizaje si el Dice no mejora
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=50, verbose=True, factor=0.1, min_lr=1e-7)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20, verbose=True, factor=0.5, min_lr=1e-7)
 
     # Cargar los datos
     train_loader, val_loader = get_loaders(
