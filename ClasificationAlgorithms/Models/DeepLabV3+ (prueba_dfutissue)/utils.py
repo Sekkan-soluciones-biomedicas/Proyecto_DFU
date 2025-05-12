@@ -57,7 +57,7 @@ def get_loaders(
         num_workers=num_workers,
         pin_memory=pin_memory,
         shuffle=False,
-        drop_last=drop_last  # Asegura que no haya lotes con tamaño 1
+        drop_last=False  # Asegura que no haya lotes con tamaño 1
     )
 
     return train_loader, val_loader
@@ -168,6 +168,7 @@ def get_test_loader(test_image_dir, test_mask_dir, batch_size=4, image_height=25
         num_workers=num_workers,
         pin_memory=pin_memory,
         shuffle=False,
+        drop_last=False  # Asegura que no haya lotes con tamaño 1
     )
 
     return test_loader

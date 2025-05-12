@@ -82,9 +82,9 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
 def objective(trial):
     # Optimización de hiperparámetros
-    learning_rate = trial.suggest_loguniform('learning_rate', 1e-6, 1e-3)
+    learning_rate = trial.suggest_loguniform('learning_rate', 1e-7, 1e-3)
     optimizer_name = trial.suggest_categorical('optimizer', ['Adam', 'AdamW'])
-    batch_size = trial.suggest_int('batch_size', 2, 8)
+    batch_size = trial.suggest_int('batch_size', 6, 8)
     dropout_prob = trial.suggest_uniform('dropout_prob', 0.0, 0.4)  # No se usa directamente en este modelo
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3) if optimizer_name == "AdamW" else None
     encoder_name = 'resnet34'  # Codificador fijo
@@ -215,8 +215,8 @@ def objective(trial):
 
 def main():
     study = optuna.create_study(
-        study_name="UNetPP_study",
-        storage="sqlite:///DeepLabV3+_study.db",
+        study_name="DeepLabV3+_or_ds_study",
+        storage="sqlite:///DeepLabV3+_or_ds_study.db",
         direction='maximize',
         load_if_exists=True,
         pruner=optuna.pruners.MedianPruner()
