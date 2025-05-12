@@ -15,8 +15,8 @@ batch_size = best_hyperparams['params']['batch_size']
 w_dice = best_hyperparams['params']['w_dice']
 w_focal = 1.0 - w_dice
 img_size_for_test = 256
-test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/test/images"
-test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/test/masks"
+test_image_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_dfutissue/test/images"
+test_mask_dir = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_dfutissue/test/images"
 
 # ----- Cargamos el modelo entrenado con las mejores métricas ----------
 checkpoint1 = torch.load("output_assets_model/best_model_checkpoint_UnetPP_smp.pth", weights_only=True)  ## Nota: el argumento weights_only=True es para evitar el warning que indica que de esta forma se carga con mayor seguridad el modelo. Sin embargo no se están cargando otros datos como el optimizador. En resumen, esto es solo para quitar el warning pues en principio no hay datos maliciosos en la forma en que se guarda el modelo localmente.
@@ -67,8 +67,8 @@ print(df_test_mean_metrics)
 
 
 # ------------------- Comparación del cálculo de métricas de validación (desp. del entrenamiento) -------------------
-VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/val/images"
-VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_stratified/val/masks"
+VAL_IMG_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_dfutissue/val/images"
+VAL_MASK_DIR = "C:/Users/am969/Documents/DFU_Proyect/ClasificationAlgorithms/data_TissueSegNet/data_padded_dfutissue/val/masks"
 print('========\n', 'Métricas de validación (después del entrenamiento, con el mejor estado del modelo)\n', '=====================')
 dict_val_metrics = calculate_double_metrics(VAL_IMG_DIR, VAL_MASK_DIR, model1, model2, num_classes=4, device=DEVICE, image_height=img_size_for_test, image_width=img_size_for_test, num_workers=0, batch_size=batch_size, pin_memory=True)
 print(pd.DataFrame(dict_val_metrics))

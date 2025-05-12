@@ -84,7 +84,7 @@ def objective(trial):
     # Optimización de hiperparámetros
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-6, 1e-3)
     optimizer_name = trial.suggest_categorical('optimizer', ['Adam', 'AdamW'])
-    batch_size = trial.suggest_int('batch_size', 2, 8)
+    batch_size = trial.suggest_int('batch_size', 6, 8)
     dropout_prob = trial.suggest_uniform('dropout_prob', 0.0, 0.4)  # No se usa directamente en este modelo
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3) if optimizer_name == "AdamW" else None
     encoder_name = 'resnet34'  # Codificador fijo
@@ -179,7 +179,7 @@ def objective(trial):
     cnt_detect_zero_dice = 0
     cnt_patience = 0
     patience_in_study = 24
-    zeros_patience = 20
+    zeros_patience = 18
 
     for epoch in range(epochs_per_trial):
         epoch_loss = train_fn(train_loader, model, optimizer, loss_fn, scaler)
